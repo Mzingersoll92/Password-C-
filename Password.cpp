@@ -1,133 +1,131 @@
-//Lab 1 cse 461 by Michael Ingersoll
+// Lab 1 CSE 461 by Michael Ingersoll
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <vector>
 
-using namespace std;
-
 class UserPw
 {
  public:
- UserPw(string user, string password); //Constructor
- string GetUser(); // returns the user
- string GetPasswd(); // returns the password
- bool Checkpw(string user, string passwd); // returns true if user and password both match
+  UserPw(std::string user, std::string password);      // Constructor
+  std::string GetUser() const;                          // returns the user
+  std::string GetPasswd() const;                        // returns the password
+  bool Checkpw(std::string user, std::string passwd) const; // true if user and password both match
 
- private :
- string user, password;
-
+ private:
+  std::string user, password;
 };
 
-UserPw::UserPw(string user, string password)
+UserPw::UserPw(std::string user, std::string password)
 {
-  this-> user = user;
-  this-> password = password;
+  this->user = user;
+  this->password = password;
 }
 
-string UserPw::GetUser()
+std::string UserPw::GetUser() const
 {
   return user;
 }
 
-string UserPw::GetPasswd()
+std::string UserPw::GetPasswd() const
 {
   return password;
 }
 
-bool UserPw::Checkpw(string user, string passwd) // add this part in need to go through it more
+bool UserPw::Checkpw(std::string user, std::string passwd) const
 {
-  if(user == user && password == passwd)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  // this-> is needed because the parameter "user" hides the member "user"
+  return this->user == user && this->password == passwd;
 }
 
 class PasswordFile
 {
  public:
- PasswordFile(string filename);// opens the file and reads the names/passwords in the vector entry
- vector<UserPw> getFile(); // returns the vector entry
- void addpw(UserPw newentry); //this adds a new user/password to entry and writes entry to the file filename
- bool checkpw(string user, string passwd); // returns true is user exists and password matches
+  PasswordFile(std::string filename);        // opens the file and reads the names/passwords into the vector
+  std::vector<UserPw> getFile() const;       // returns the vector of entries
+  void addpw(UserPw newentry);               // adds a new user/password and writes entries to the file
+  bool checkpw(std::string user, std::string passwd) const; // true if user exists and password matches
 
  private:
- string filename; // the file that contains password information
- vector<UserPw> entry; // the list of usernames/passwords
- void write();
+  std::string filename;                      // the file that contains password information
+  std::vector<UserPw> entry;                 // the list of usernames/passwords
+  void write() const;
 };
 
-PasswordFile::PasswordFile(string filename)
+PasswordFile::PasswordFile(std::string filename)
 {
-  this->filename = filename;  //points to this filename
-  string user, password;
-  ifstream pfile;
-  pfile.open(this->filename.c_str());
-  pfile >> user >> password;
+  this->filename = filename;
+  std::string user, password;
+  std::ifstream pfile(this->filename.c_str());
 
-  while (pfile.good())
+  while (pfile >> user >> password)
   {
     entry.push_back(UserPw(user, password));
-    pfile >> user >> password;
   }
-} // end of PasswordFile:PasswordFile(string filename)
-
-vector <UserPw> PasswordFile::getFile()
-{
-  return getFile();
 }
 
-void PasswordFile:: addpw(UserPw newentry)
+std::vector<UserPw> PasswordFile::getFile() const
+{
+  return entry;
+}
+
+void PasswordFile::addpw(UserPw newentry)
 {
   entry.push_back(newentry);
   write();
-
 }
 
-void PasswordFile::write()
+void PasswordFile::write() const
 {
-  ofstream outfile;
-  outfile.open(filename.c_str());
+  std::ofstream outfile(filename.c_str());
 
-  for (int i = 0; i < entry.size(); i++)
+  for (size_t i = 0; i < entry.size(); i++)
   {
-    outfile << entry[i].GetUser() << " " << entry[i].GetPasswd() << endl;
+    outfile << entry[i].GetUser() << " " << entry[i].GetPasswd() << std::endl;
   }
-  outfile.close();
 }
 
-bool PasswordFile::checkpw(string user, string passwd)
+bool PasswordFile::checkpw(std::string user, std::string passwd) const
 {
-  for(int i = 0; i < entry.size(); i++)
+  // check every entry; only give up after the whole list has been searched
+  for (size_t i = 0; i < entry.size(); i++)
   {
-    if(entry[i].GetUser() == user && entry[i].GetPasswd() == passwd)
+    if (entry[i].Checkpw(user, passwd))
     {
       return true;
-	cout << "User/Password match"<< endl;
-    }
-    else
-    {
-      return false;
-	cout << "User/Password does not match" << endl; 
     }
   }
+  return false;
 }
 
 int main()
 {
- PasswordFile passfile("password.txt");
-// passfile.addpw(UserPw("dbotting","123qwe"));
-// passfile.addpw(UserPw("egomez","qwerty"));
-// passfile.addpw(UserPw("tongyu","liberty"));
- // write some lines to see if passwords match users
+  PasswordFile passfile("password.txt");
 
-bool checkpw(string user, string passwd);
-if (passfile.checkpw("dbotting","123qwe"))
-    { cout << "dbotting works" << endl;
-    }
+  // Uncomment on the first run to create password.txt, then comment out again
+  // passfile.addpw(UserPw("dbotting", "123qwe"));
+  // passfile.addpw(UserPw("egomez", "qwerty"));
+  // passfile.addpw(UserPw("tongyu", "liberty"));
 
+  // write some lines to see if passwords match users
+  if (passfile.checkpw("dbotting", "123qwe"))
+  {
+    std::cout << "dbotting works" << std::endl;
+  }
+  else
+  {
+    std::cout << "dbotting does not match" << std::endl;
+  }
+
+  if (passfile.checkpw("tongyu", "liberty"))
+  {
+    std::cout << "tongyu works (not the first entry)" << std::endl;
+  }
+
+  if (!passfile.checkpw("dbotting", "wrongpass"))
+  {
+    std::cout << "wrong password correctly rejected" << std::endl;
+  }
+
+  return 0;
 }
